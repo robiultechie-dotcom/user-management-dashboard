@@ -1,0 +1,31 @@
+<div class="row justify-content-center">
+  <div class="col-12 col-md-5 col-lg-4">
+    <div class="card border-0 shadow-sm p-4 mt-5">
+      <div class="mb-4">
+        <p class="text-muted small mb-1">Start your journey</p>
+        <h2 class="h4 fw-bold">Sign In to The App</h2>
+      </div>
+
+      <%= form_with url: login_path, method: :post, local: true do |f| %>
+        <div class="mb-3">
+          <%= f.label :email, "E-mail", class: "form-label text-muted small" %>
+          <%= f.email_field :email, class: "form-control", placeholder: "test@example.com", required: true, autofocus: true %>
+        </div>
+
+        <div class="mb-3">
+          <%= f.label :password, "Password", class: "form-label text-muted small" %>
+          <%= f.password_field :password, class: "form-control", required: true %>
+        </div>
+
+        <div class="d-grid mt-4">
+          <%= f.submit "Sign In", class: "btn btn-primary" %>
+        </div>
+      <% end %>
+
+      <div class="text-center mt-4">
+        <span class="text-muted small">Don't have an account?</span>
+        <%= link_to "Sign up", sign_up_path, class: "small text-decoration-none fw-semibold ms-1" %>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,51 @@
+<div class="row justify-content-center">
+  <div class="col-12 col-md-5 col-lg-4">
+    <div class="card border-0 shadow-sm p-4 mt-4">
+      <div class="mb-3">
+        <p class="text-muted small mb-1">Join the team</p>
+        <h2 class="h4 fw-bold">Create an Account</h2>
+      </div>
+
+      <% if @user.errors.any? %>
+        <div class="alert alert-danger p-2 small">
+          <ul class="mb-0 ps-3">
+            <% @user.errors.full_messages.each do |msg| %>
+              <li><%= msg %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <%= form_with model: @user, url: sign_up_path, local: true do |f| %>
+        <div class="mb-3">
+          <%= f.label :name, "Full Name", class: "form-label text-muted small" %>
+          <%= f.text_field :name, class: "form-control", placeholder: "e.g. John Doe", required: true, autofocus: true %>
+        </div>
+
+        <div class="mb-3">
+          <%= f.label :email, "E-mail", class: "form-label text-muted small" %>
+          <%= f.email_field :email, class: "form-control", placeholder: "name@example.com", required: true %>
+        </div>
+
+        <div class="mb-3">
+          <%= f.label :password, "Password", class: "form-label text-muted small" %>
+          <%= f.password_field :password, class: "form-control", required: true %>
+        </div>
+
+        <div class="mb-3">
+          <%= f.label :password_confirmation, "Confirm Password", class: "form-label text-muted small" %>
+          <%= f.password_field :password_confirmation, class: "form-control", required: true %>
+        </div>
+
+        <div class="d-grid mt-4">
+          <%= f.submit "Register", class: "btn btn-primary" %>
+        </div>
+      <% end %>
+
+      <div class="text-center mt-3">
+        <span class="text-muted small">Already have an account?</span>
+        <%= link_to "Sign in", login_path, class: "small text-decoration-none fw-semibold ms-1" %>
+      </div>
+    </div>
+  </div>
+</div>
