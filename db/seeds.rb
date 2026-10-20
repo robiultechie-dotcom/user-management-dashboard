@@ -1,6 +1,3 @@
-# Clear existing data and seed exactly 4 clean users with simple emails
-User.destroy_all
-
 users_list = [
   { name: "Robiul Islam", email: "robiul@gmail.com", status: "active",  last_login_at: Time.current },
   { name: "Alex Clare",   email: "alex@gmail.com",   status: "active",  last_login_at: 10.minutes.ago },
@@ -9,12 +6,13 @@ users_list = [
 ]
 
 users_list.each do |data|
-  User.create!(
-    name: data[:name],
-    email: data[:email],
-    status: data[:status],
-    last_login_at: data[:last_login_at],
-    password: "123",
-    password_confirmation: "123"
-  )
+  user = User.find_or_initialize_by(email: data[:email])
+  if user.new_record?
+    user.name = data[:name]
+    user.status = data[:status]
+    user.last_login_at = data[:last_login_at]
+    user.password = "123"
+    user.password_confirmation = "123"
+    user.save!
+  end
 end
