@@ -1,32 +1,40 @@
-<div class="row g-4">
-  <!-- Left Column: User Management Table -->
+<div class="row g-4 align-items-stretch">
+  <!-- Left Column: Primary User Management Table (8 Cols) -->
   <div class="col-12 col-lg-8">
-    <div class="card border-0 shadow-sm p-4">
+    <div class="card border-0 shadow-sm p-4 d-flex flex-column" style="height: 520px;">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="h5 fw-bold mb-0">User Management</h2>
       </div>
 
-      <%= form_with url: "#", id: "user-management-form", method: :patch, local: true do %>
-        <!-- Toolbar above the table -->
-        <div class="d-flex align-items-center gap-2 mb-3 bg-light p-2 rounded border">
-          <button type="submit" formaction="<%= block_users_path %>" class="btn btn-outline-warning btn-sm d-flex align-items-center gap-1" id="block-btn">
-            <i class="bi bi-lock-fill"></i>
-            <span>Block</span>
-          </button>
+      <%= form_with url: "#", id: "user-management-form", method: :patch, local: true, class: "d-flex flex-column flex-grow-1 overflow-hidden" do %>
+        <!-- Toolbar above the table matching Mentor's PDF Layout -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 bg-light p-2 rounded border flex-shrink-0">
+          <!-- Action Buttons on the Left -->
+          <div class="d-flex align-items-center gap-2">
+            <button type="submit" formaction="<%= block_users_path %>" class="btn btn-outline-warning btn-sm d-flex align-items-center gap-1" id="block-btn">
+              <i class="bi bi-lock-fill"></i>
+              <span>Block</span>
+            </button>
 
-          <button type="submit" formaction="<%= unblock_users_path %>" class="btn btn-outline-success btn-sm" id="unblock-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Unblock selected">
-            <i class="bi bi-unlock-fill"></i>
-          </button>
+            <button type="submit" formaction="<%= unblock_users_path %>" class="btn btn-outline-success btn-sm" id="unblock-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Unblock selected">
+              <i class="bi bi-unlock-fill"></i>
+            </button>
 
-          <button type="submit" formaction="<%= destroy_multiple_users_path %>" formmethod="post" name="_method" value="delete" class="btn btn-outline-danger btn-sm" id="delete-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete selected">
-            <i class="bi bi-trash-fill"></i>
-          </button>
+            <button type="submit" formaction="<%= destroy_multiple_users_path %>" formmethod="post" name="_method" value="delete" class="btn btn-outline-danger btn-sm" id="delete-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete selected">
+              <i class="bi bi-trash-fill"></i>
+            </button>
+          </div>
+
+          <!-- Instant Filter Input on the Right -->
+          <div class="d-flex align-items-center">
+            <input type="text" id="table-filter-input" class="form-control form-control-sm" placeholder="Filter" style="width: 170px;">
+          </div>
         </div>
 
-        <!-- User Table -->
-        <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0 border">
-            <thead class="table-light">
+        <!-- User Table Container with Smooth Internal Scrolling -->
+        <div class="table-responsive flex-grow-1 overflow-auto border rounded">
+          <table class="table table-hover align-middle mb-0" id="users-data-table">
+            <thead class="table-light sticky-top">
               <tr>
                 <th style="width: 40px;" class="text-center">
                   <input type="checkbox" id="select-all" class="form-check-input" aria-label="Select all users">
@@ -44,17 +52,24 @@
                 </tr>
               <% else %>
                 <% @users.each do |user| %>
-                  <tr class="<%= 'table-secondary text-muted' if user.blocked? %>" data-user-id="<%= user.id %>">
+                  <tr class="user-row <%= 'table-secondary text-muted' if user.blocked? %>" data-user-id="<%= user.id %>">
                     <td class="text-center">
                       <input type="checkbox" name="user_ids[]" value="<%= user.id %>" class="form-check-input user-checkbox" aria-label="Select user">
                     </td>
-                    <td class="fw-semibold">
-                      <%= user.name %>
-                      <% if user.id == current_user.id %>
-                        <span class="badge bg-primary ms-1">You</span>
-                      <% end %>
+                    <td>
+                      <!-- Strikethrough if blocked, as requested in PDF -->
+                      <div class="fw-semibold <%= 'text-decoration-line-through text-muted' if user.blocked? %>">
+                        <%= user.name %>
+                        <% if current_user && user.id == current_user.id %>
+                          <span class="badge bg-primary ms-1">You</span>
+                        <% end %>
+                      </div>
+                      <!-- Job Position directly under the name -->
+                      <div class="small text-muted" style="font-size: 0.78rem;">
+                        <%= user.job_position.presence || "N/A" %>
+                      </div>
                     </td>
-                    <td><%= user.email %></td>
+                    <td class="user-email-cell"><%= user.email %></td>
                     <td>
                       <% if user.active? %>
                         <span class="badge bg-success-subtle text-success border border-success-subtle">Active</span>
@@ -64,7 +79,9 @@
                     </td>
                     <td class="small text-muted">
                       <% if user.last_login_at %>
-                        <%= time_ago_in_words(user.last_login_at) %> ago
+                        <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= user.last_login_at.strftime('%B %d, %Y %H:%M:%S') %>" style="cursor: pointer;">
+                          <%= time_ago_in_words(user.last_login_at) %> ago
+                        </span>
                       <% else %>
                         Never
                       <% end %>
@@ -79,26 +96,23 @@
     </div>
   </div>
 
-  <!-- Right Column: AI Chat Assistant -->
+  <!-- Right Column: Compact AI Data Assistant (4 Cols - Symmetrical 520px Height) -->
   <div class="col-12 col-lg-4">
-    <div class="card border-0 shadow-sm d-flex flex-column" style="min-height: 520px; height: 100%;">
-      <div class="card-header bg-white py-3 border-bottom d-flex align-items-center gap-2">
+    <div class="card border-0 shadow-sm d-flex flex-column" style="height: 520px;">
+      <div class="card-header bg-white py-3 border-bottom d-flex align-items-center gap-2 flex-shrink-0">
         <i class="bi bi-robot text-primary fs-5"></i>
         <h3 class="h6 fw-bold mb-0">Data Assistant</h3>
       </div>
 
-      <!-- Messages Window -->
-      <div id="chat-messages" class="card-body overflow-auto p-3 bg-light d-flex flex-column gap-2" style="flex: 1 1 auto; max-height: 400px; min-height: 280px; font-size: 0.88rem;">
-        
-        <!-- Interactive Welcome Card with only solid buttons -->
+      <!-- Messages Window with Auto-Scroll & Compact Spacing -->
+      <div id="chat-messages" class="card-body overflow-auto p-3 bg-light d-flex flex-column gap-2 flex-grow-1" style="font-size: 0.88rem;">
         <div id="chat-welcome" class="text-center my-auto p-3 bg-white rounded border shadow-sm">
           <div class="mb-2">
-            <i class="bi bi-chat-dots text-primary fs-3"></i>
+            <i class="bi bi-chat-dots text-primary fs-4"></i>
           </div>
-          <h4 class="h6 fw-bold text-dark mb-1">How can I help you today?</h4>
-          <p class="text-muted small mb-3">Ask about your users or click a quick prompt below:</p>
+          <h4 class="h6 fw-bold text-dark mb-1">How can I help you?</h4>
+          <p class="text-muted small mb-3" style="font-size: 0.8rem;">Ask about users or click a quick prompt:</p>
           
-          <!-- Clickable Action Chips (Select button removed) -->
           <div class="d-flex flex-wrap gap-2 justify-content-center">
             <button type="button" class="btn btn-outline-primary btn-sm rounded-pill quick-prompt py-1 px-3" style="font-size: 0.8rem;" data-prompt="How many users are active?">
               📊 Active Users
@@ -108,13 +122,12 @@
             </button>
           </div>
         </div>
-
       </div>
 
       <!-- Chat Input Form -->
-      <div class="card-footer bg-white border-top p-3 mt-auto">
+      <div class="card-footer bg-white border-top p-2 flex-shrink-0">
         <form id="chat-form" class="d-flex gap-2">
-          <input type="text" id="chat-input" class="form-control form-control-sm" placeholder="Ask a question or give a command..." autocomplete="off" required>
+          <input type="text" id="chat-input" class="form-control form-control-sm" placeholder="Ask or command..." autocomplete="off" required>
           <button type="submit" class="btn btn-primary btn-sm px-3 d-flex align-items-center" id="chat-submit-btn">
             <i class="bi bi-send-fill"></i>
           </button>
@@ -126,24 +139,44 @@
 
 <script>
   function initPage() {
-    // Tooltips
+    // 1. Tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (el) { return new bootstrap.Tooltip(el); });
 
-    // Table Multi-Selection
+    // 2. Client-side Instant Filter for users
+    const filterInput = document.getElementById("table-filter-input");
+    const userRows = document.querySelectorAll(".user-row");
+
+    if (filterInput && !filterInput.dataset.bound) {
+      filterInput.dataset.bound = "true";
+      filterInput.addEventListener("input", function () {
+        const val = this.value.toLowerCase().trim();
+        userRows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          row.style.display = text.includes(val) ? "" : "none";
+        });
+      });
+    }
+
+    // 3. Multi-Selection Checkboxes
     const selectAll = document.getElementById("select-all");
     const userCheckboxes = document.querySelectorAll(".user-checkbox");
 
     function syncSelectAllState() {
       if (!selectAll) return;
-      const allChecked = userCheckboxes.length > 0 && Array.from(userCheckboxes).every(c => c.checked);
+      const visibleCheckboxes = Array.from(userCheckboxes).filter(cb => cb.closest("tr").style.display !== "none");
+      const allChecked = visibleCheckboxes.length > 0 && visibleCheckboxes.every(c => c.checked);
       selectAll.checked = allChecked;
     }
 
     if (selectAll && !selectAll.dataset.bound) {
       selectAll.dataset.bound = "true";
       selectAll.addEventListener("change", function () {
-        userCheckboxes.forEach(cb => cb.checked = selectAll.checked);
+        userCheckboxes.forEach(cb => {
+          if (cb.closest("tr").style.display !== "none") {
+            cb.checked = selectAll.checked;
+          }
+        });
       });
     }
 
@@ -154,7 +187,7 @@
       }
     });
 
-    // Chat Elements
+    // 4. Chat Assistant Logic
     const chatForm = document.getElementById("chat-form");
     const chatInput = document.getElementById("chat-input");
     const chatMessages = document.getElementById("chat-messages");
@@ -163,7 +196,6 @@
 
     let isSubmitting = false;
 
-    // Clickable Prompt Chips Logic
     document.querySelectorAll(".quick-prompt").forEach(btn => {
       if (!btn.dataset.bound) {
         btn.dataset.bound = "true";
@@ -180,7 +212,6 @@
       }
     });
 
-    // Form submit handler
     if (chatForm && !chatForm.dataset.bound) {
       chatForm.dataset.bound = "true";
       chatForm.addEventListener("submit", function (e) {
