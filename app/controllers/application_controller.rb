@@ -6,23 +6,27 @@ class ApplicationController < ActionController::Base
 
   private
 
-  # Returns currently logged-in user from session
+  # Strictly retrieves current user from valid session with no fallback
   def current_user
-    @current_user ||= User.find_by(id: session[:user_id]) if session[:user_id]
+    return @current_user if defined?(@current_user)
+
+    @current_user = if session[:user_id].present?
+                      User.find_by(id: session[:user_id])
+                    end
   end
 
   def logged_in?
     current_user.present?
   end
 
-  # Validates that user exists and is not blocked
+  # Blocks any unauthenticated or blocked user and forces immediate login redirect
   def authenticate_and_validate_user!
     if current_user.nil?
-      session[:user_id] = nil
-      redirect_to login_path
+      reset_session
+      redirect_to login_path and return
     elsif current_user.blocked?
-      session[:user_id] = nil
-      redirect_to login_path, alert: "Your account is blocked. Please contact support."
+      reset_session
+      redirect_to login_path, alert: "Your account is blocked. Please contact support." and return
     end
   end
 end
