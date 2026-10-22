@@ -158,3 +158,5 @@ class GeminiService
       end
       nil
     end
+  end
+end
